@@ -225,7 +225,44 @@ public findAll(type?: string) {
 }
 ```
 
-### 2.6. Other useful decorators
+### 2.6. Read env variables with the help of `ConfigModule`
+
+In order to read environment variables we will need to install the `ConfigModule` as a dependency.
+
+```bash
+npm i --save @nestjs/config
+```
+
+The `ConfigModule` will have to be set up globally in our app module:
+Just add `ConfigModule.forRoot({ isGlobal: true }),` to the imports array of the app module.
+
+Once that's done you can create a `.env` file and declare a variable in there, for example a `NODE_ENV` variable.
+
+```env
+NODE_ENV=development
+```
+
+We can then make use of the `ConfigService` to read the variable from the `.env` file.
+For that we will import the config service in our `AppService` and instantiate it in the constructor.
+We will also add a property to the service to store the environment variable and use it in the `getHello` method.
+
+```typescript
+export class AppService {
+  environment: string;
+  constructor(private readonly configService: ConfigService) {
+    this.environment = this.configService.get('NODE_ENV') ?? 'not-defined';
+  }
+
+  getHello(): string {
+    return `Hello World! ${this.environment}`;
+  }
+}
+```
+
+If you now restart the project you should see the environment variable in the response.
+Try changing the environment variable in the `.env` file and see the changes in the response after restarting the project.
+
+### 2.7. Other useful decorators
 
 There are other useful decorators that we can use to handle the request.
 
@@ -381,10 +418,7 @@ import { Injectable, OnModuleInit, type OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '../generated/prisma/client';
 
 @Injectable()
-export class PrismaService
-  extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy
-{
+export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   async onModuleInit() {
     await this.$connect();
   }
@@ -401,11 +435,11 @@ OnModuleDestroy is a lifecycle hook that is called when the module is destroyed.
 
 Now we should theoretically be able to use the prisma service in our project but first we will need to define a `users` resource.
 
-### 4. Add a swagger interface for our project
+## 4. Add a swagger interface for our project
 
 In order to facilitate the testing of our API we will add a swagger interface to our project.
 
-#### 4.1. Set up swagger
+### 4.1. Set up swagger
 
 We will install the swagger package as a dependency.
 
@@ -439,11 +473,11 @@ async function bootstrap() {
 
 If all goes well you should be able to access the swagger interface at [`http://localhost:3000/docs`](http://localhost:3000/docs).
 
-### 5. Define a resource and link it to database
+## 5. Define a resource and link it to database
 
 In this section we will define a resource and link it to the database.
 
-#### 5.1. Define a `users` resource
+### 5.1. Define a `users` resource
 
 We will define a `users` resource in our project by using the Nest CLI.
 
@@ -481,7 +515,7 @@ export class CreateUserDto {
 
 If you added those and refresh the swagger interface you should see the email and password fields with the example values.
 
-#### 5.2. Create a new user in the database
+### 5.2. Create a new user in the database
 
 Right now our POST `users` endpoint only outputs a string. but we want it to create a new user in the database.
 
@@ -528,7 +562,7 @@ findAll() {
 
 You can now run the project and try the endpoints!
 
-### 6. Basic validation with [pipes](https://docs.nestjs.com/pipes)
+## 6. Basic validation with [pipes](https://docs.nestjs.com/pipes)
 
 In this section we will add basic validation to our DTOs using the `class-validator` and `class-transformer` packages.
 
@@ -538,7 +572,7 @@ They are used to transform the data before it is handled by the controller.
 They are also used to validate the data.
 You can read more about them [here](https://docs.nestjs.com/pipes).
 
-#### 6.1. Install the necessary packages
+### 6.1. Install the necessary packages
 
 We will install the `class-validator` and `class-transformer` packages as dependencies.
 
@@ -546,7 +580,7 @@ We will install the `class-validator` and `class-transformer` packages as depend
 npm i --save class-validator class-transformer
 ```
 
-#### 6.2. Setup a global pipe
+### 6.2. Setup a global pipe
 
 For the scope of this project we will setup a global pipe in the [`src/main.ts`](src/main.ts) file.
 
@@ -560,11 +594,11 @@ app.useGlobalPipes(
     forbidNonWhitelisted: true,
     forbidUnknownValues: true,
     disableErrorMessages: false,
-  }),
+  })
 );
 ```
 
-#### 6.3. Add validation to the DTOs
+### 6.3. Add validation to the DTOs
 
 Then on our create-user.dto.ts file we will add an `@IsEmail` decorator to the email field and an `@IsString` decorator to the password field so that they are validated before it is handled by the controller.
 
@@ -591,11 +625,11 @@ You should get a 400 Bad Request response with the error message.
 }
 ```
 
-### 7. API Documentation with Swagger
+## 7. API Documentation with Swagger
 
 In this section we will document our API using swagger
 
-#### 7.1. Add Swagger decorators to the controllers
+### 7.1. Add Swagger decorators to the controllers
 
 Api documentation is done using swagger decorators.
 
@@ -643,7 +677,7 @@ create(@Body() createUserDto: CreateUserDto) {
 }
 ```
 
-### 8. Authentication with Passport and JWT
+## 8. Authentication with Passport and JWT
 
 In this section we will add authentication to our API using Passport and JWT.
 
@@ -653,7 +687,7 @@ We will use Passport to implement a basic authentication strategy.
 
 We will first login with an email and password and then we will get a JWT token that can be used to authenticate requests to the API.
 
-#### 8.1. Install the necessary packages
+### 8.1. Install the necessary packages
 
 We will install the `passport` and `passport-jwt` packages as dependencies.
 
@@ -662,7 +696,7 @@ npm install --save @nestjs/passport passport passport-local @nestjs/jwt passport
 npm install --save-dev @types/passport-local @types/passport-jwt
 ```
 
-#### 8.2. Update user service with find by email method
+### 8.2. Update user service with find by email method
 
 We will add a new method to the [src/users/users.service.ts](src/users/users.service.ts) file to find a user by email.
 
@@ -677,7 +711,7 @@ async findByEmail(email: string) {
 
 We will also want to export the `UsersService` from the `UsersModule` so that we can use it in the `AuthService`.
 
-#### 8.3. Create a custom @Public decorator
+### 8.3. Create a custom @Public decorator
 
 We will create a custom decorator to mark endpoints as public so that they are not protected by authentication.
 
@@ -690,7 +724,7 @@ export const IS_PUBLIC_KEY = 'isPublic';
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 ```
 
-#### 8.4. Create AUTH resource and a local passport strategy
+### 8.4. Create AUTH resource and a local passport strategy
 
 We will create a new resource for the authentication.
 
@@ -698,7 +732,7 @@ We will create a new resource for the authentication.
 nest g resource auth
 ```
 
-In the auth Module we will import `PassportModule` and `UsersModule` and we will also configure the JwtModule with a secret and an expiration time.
+In the auth Module we will import `PassportModule` and `UsersModule` and we will also configure the `JwtModule` with a secret and an expiration time.
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -735,7 +769,7 @@ import { JwtService } from '@nestjs/jwt';
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
-    private readonly jwtService: JwtService,
+    private readonly jwtService: JwtService
   ) {}
 
   async validateUser(email: string, password: string) {
@@ -776,10 +810,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     super({ usernameField: 'email' });
   }
 
-  async validate(
-    email: string,
-    password: string,
-  ): Promise<Omit<User, 'password'>> {
+  async validate(email: string, password: string): Promise<Omit<User, 'password'>> {
     const user = await this.authService.validateUser(email, password);
     if (!user) {
       throw new UnauthorizedException();
@@ -795,7 +826,7 @@ TODO: explain this
 
 Now we need to add the local Strategy to the auth module providers.
 
-#### 8.5. Create a local auth guard
+### 8.5. Create a local auth guard
 
 Guards in nestjs are classes that implement the CanActivate interface.
 They are used to protect endpoints and to validate requests.
@@ -811,7 +842,7 @@ import { AuthGuard } from '@nestjs/passport';
 export class LocalAuthGuard extends AuthGuard('local') {}
 ```
 
-#### 8.6. Create login endpoint and use the local auth guard
+### 8.6. Create login endpoint and use the local auth guard
 
 We will add a login endpoint to the [src/auth/auth.controller.ts](src/auth/auth.controller.ts) file.
 
@@ -844,7 +875,7 @@ export class AuthController {
 
 After calling this endpoint you should get a JWT token in the response.
 
-#### 8.7 Setting up a JWT strategy
+### 8.7 Setting up a JWT strategy
 
 We will need to create a JWT strategy in the `src/auth/strategies/jwt.strategy.ts` file in order to extract the JWT token from the request and validate it.
 
@@ -900,17 +931,13 @@ Here's the flow:
 
 **Don't forget to add the JwtStrategy to the AuthModule providers.**
 
-#### 8.8 Setting up a JWT global guard
+### 8.8 Setting up a JWT global guard
 
 We will now need a guard in order to protect our private endpoints.
 We will create a `JwtAuthGuard` in the `src/auth/guards/jwtAuth.guard.ts` file.
 
 ```typescript
-import {
-  Injectable,
-  UnauthorizedException,
-  type ExecutionContext,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException, type ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from 'generated/prisma';
@@ -967,7 +994,7 @@ The guard is defined, now we will need to register it as a global guard.For that
 },
 ```
 
-#### 8.9. Setting up swagger to use the JWT token in requests
+### 8.9. Setting up swagger to use the JWT token in requests
 
 At this point every endpoint that is not marked as public with our custom decorator will be protected by the JWT auth guard.
 
@@ -997,5 +1024,140 @@ That tells the swagger interface to add a bearer authentication token to the req
 You can now refresh the swagger interface and you should see an `Authorize` button that will open up a modal to enter the JWT token.
 
 You can get that from hitting the login endpoint.
+
+## 9. Custom providers
+
+By default, NestJS handles dependency injection automatically when you use the @Injectable() decorator on your services. But there are scenarios where you need more control over how dependencies are created and injected.
+
+For that we have the possibility to create custom providers.
+
+Custom providers solve these problems:
+
+- Conditional logic
+  You need different implementations based on environment (development vs production)
+- External values
+  You want to inject configuration objects, API keys, or constants
+- Factory patterns
+  The creation of your service requires complex initialization logic
+- Interface-based design
+  You want to inject different implementations of the same interface
+
+We've already seen custom providers in action in our auth setup [src/auth/guards/jwtAuth.guard.ts, src/app.module.ts]. When we registered `JwtAuthGuard` globally using `APP_GUARD`, that was a custom provider. Instead of letting NestJS automatically handle it, we explicitly told it how to provide that guard throughout your application.
+
+### 9.1. Create a custom provider
+
+We will create a `storage` resource in which we will define a custom provider to handle the storage of the data.
+The provider will use the `useFactory` pattern to create the storage service.
+
+We will use the Nest CLI to create the resource.
+
+```bash
+nest g resource storage
+```
+
+**REST API and NO CRUD endpoints.**
+
+Inside the storage service we will define the abstract class that will be implemented by the storage services.
+The abstract class will have two methods: `save` and `retrieve`.
+
+```typescript
+export const STORAGE_PROVIDER = 'STORAGE_PROVIDER';
+
+export abstract class StorageService {
+  abstract save(data: string): string;
+  abstract retrieve(id: string): string;
+}
+```
+
+We will then create a services folder inside the `src/storage` folder and inside it we will create two services that will implement the interface:
+
+- developmentStorage.service.ts
+- productionStorage.service.ts
+
+Example of the DevelopmentStorageService:
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import type { StorageService } from 'src/storage/storage.service';
+
+@Injectable()
+export class DevelopmentStorageService implements StorageService {
+  retrieve(id: string): string {
+    return `[Development] Retrieved data for id: ${id}`;
+  }
+
+  save(data: string): string {
+    return `[Development] Saved data: ${data}`;
+  }
+}
+```
+
+Once we have defined the services we will then need to update the storage module to use the necessary service based on the environment.
+
+Inside the storage module we will declare a custom provider that will use the `useFactory` pattern to create the storage service based on the environment.
+
+```typescript
+providers: [
+  {
+    provide: STORAGE_PROVIDER,
+    useFactory: (configService: ConfigService) => {
+      const environment =
+        configService.get<string>('NODE_ENV') ?? 'development';
+      return environment === 'development'
+        ? new DevelopmentStorageService()
+        : new ProductionStorageService();
+    },
+    inject: [ConfigService],
+  },
+],
+```
+
+What happens here?
+
+We are declaring a custom provider that makes use of the `useFactory` pattern to create the storage service based on the environment.
+We are injecting the `ConfigService` into the factory function in order to use it to read the environment variable.
+Inside the factory function we are returning the appropriate storage service based on the environment.
+
+Lastly we will export the STORAGE_PROVIDER token in order to be able to use it in other modules.
+
+```typescript
+exports: [STORAGE_PROVIDER],
+```
+
+### 9.2. Use the storage service in the storage controller
+
+We will now need to use the storage service in the storage controller.
+
+Inside the storage controller constructor we will make use of the abstract class to inject the storage service and a token to inject the service.
+
+```typescript
+constructor(
+  @Inject(STORAGE_PROVIDER) private readonly storageService: StorageService,
+) {}
+```
+
+What happens here?
+We tell NestJS that we want to inject the STORAGE_PROVIDER token into the constructor in order to inject the storage service.
+
+```typescript
+import { Controller, Get, Inject, Param } from '@nestjs/common';
+import { STORAGE_PROVIDER, StorageService } from 'src/storage/storage.service';
+import { ApiTags } from '@nestjs/swagger';
+import { Public } from 'src/common/decorators/public.decorator';
+
+@ApiTags('storage')
+@Controller('storage')
+export class StorageController {
+  constructor(@Inject(STORAGE_PROVIDER) private readonly storageService: StorageService) {}
+
+  @Get(':id')
+  @Public()
+  retrieve(@Param('id') id: string) {
+    return this.storageService.retrieve(id);
+  }
+}
+```
+
+We can now test the endpoint in swagger and see the response, then change node_env to production and see the response again.
 
 # RBAC?
