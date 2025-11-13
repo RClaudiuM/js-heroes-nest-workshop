@@ -6,9 +6,7 @@
 
 In this workshop we will create a simple REST API using [NestJS](https://docs.nestjs.com/).
 
-This API will have:
-
-TODO: add things
+The application that we're gonna build is by no means a production ready application. It's a simple API that will serve as a foundation for a real application.
 
 ## Prerequisites
 
@@ -552,11 +550,11 @@ create(createUserDto: CreateUserDto) {
 }
 ```
 
-We should also update the findAll method to return all users from the database.
+We should also update the findAll method to return all users from the database and select only the email and id fields.
 
 ```typescript
 findAll() {
-  return this.prisma.user.findMany();
+  return this.prisma.user.findMany({ select: { email: true, id: true } });
 }
 ```
 
@@ -1160,4 +1158,12 @@ export class StorageController {
 
 We can now test the endpoint in swagger and see the response, then change node_env to production and see the response again.
 
-# RBAC?
+# 10. Additional chapters or homework
+
+## 10.1. Add hashing on user passwords
+
+## 10.2. Use a data access layer (DAL)
+
+## 10.3. Add a simple Role-Based Access Control (RBAC)
+
+## 10.4. Dynamic module usage
