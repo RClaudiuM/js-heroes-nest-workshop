@@ -8,6 +8,16 @@ function configureSwagger(app: INestApplication) {
     .setTitle('Js Heroes API')
     .setDescription('This is a nice api')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        in: 'header',
+      },
+      'token',
+    )
+    .addSecurityRequirements('token')
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, document);
