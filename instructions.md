@@ -645,7 +645,7 @@ Some useful decorators are:
 
 We will update the [src/users/users.controller.ts](src/users/users.controller.ts) file to add these decorators to the endpoints.
 
-For example for the create endpoint we will add the following decorators
+For example for the find all endpoint we will add the following decorators
 
 ```typescript
 @Get()
@@ -819,8 +819,16 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
 ```
 
 What happens on the LocalStrategy class?
-swap the usernameField to email and the validate method to use the email and password.
-TODO: explain this
+The above basically tels nest to use Passport's local authentications strategy which is designed to handle username/password login flows.
+our `super()` call configures the passport local strategy and tells it that we should use the `email` field in the request body instead of username.
+
+In short:
+
+1. Passport automatically extracts email and password from the request body
+2. It calls our validate() method with these credentials
+3. We delegate authService.validateUser() to check if the credentials are valid
+4. If validation fails (no user found or wrong password), we throw UnauthorizedException
+5. If successful, we return the user object (without the password field for security)
 
 Now we need to add the local Strategy to the auth module providers.
 
@@ -881,7 +889,7 @@ We will need to create a JWT strategy in the `src/auth/strategies/jwt.strategy.t
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
-import type { UsersService } from 'src/users/users.service';
+import { UsersService } from 'src/users/users.service';
 
 interface JwtPayload {
   email: string;
@@ -938,7 +946,7 @@ We will create a `JwtAuthGuard` in the `src/auth/guards/jwtAuth.guard.ts` file.
 import { Injectable, UnauthorizedException, type ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { User } from 'generated/prisma';
+import { User } from 'generated/prisma/client';
 import { IS_PUBLIC_KEY } from 'src/common/decorators/public.decorator';
 
 @Injectable()
